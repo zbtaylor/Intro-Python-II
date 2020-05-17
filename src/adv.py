@@ -1,27 +1,38 @@
 import textwrap
+from item import Item
 from room import Room
 from player import Player
 
 
-# Declare all the rooms
+# Items
+
+bread = Item("Bread", "A stale loaf of bread. It is hard to the touch.")
+rope = Item("Rope", "It feels strong enough to hold a person or two.")
+sword = Item("Sword", "Dried blood tinges the blade as well as the hilt.")
+shield = Item("Shield", "A small, dented buckler.")
+
+
+# Rooms
 
 room = {
     'outside':  Room("Outside Cave Entrance",
-                     "North of you, the cave mount beckons."),
+                     "North of you, the cave mount beckons.",
+                     []),
 
-    'foyer':    Room("Foyer", """Dim light filters in from the south. Dusty
-passages run north and east."""),
+    'foyer':    Room("Foyer",
+                     """Dim light filters in from the south. Dusty passages run north and east.""",
+                     []),
 
-    'overlook': Room("Grand Overlook", """A steep cliff appears before you, falling
-into the darkness. Ahead to the north, a light flickers in
-the distance, but there is no way across the chasm."""),
+    'overlook': Room("Grand Overlook",
+                     """A steep cliff appears before you, falling into the darkness. Ahead to the north, a light flickers in the distance, but there is no way across the chasm.""",
+                     [rope]),
 
-    'narrow':   Room("Narrow Passage", """The narrow passage bends here from west
-to north. The smell of gold permeates the air."""),
+    'narrow':   Room("Narrow Passage",
+                     """The narrow passage bends here from west to north. The smell of gold permeates the air.""", [bread]),
 
-    'treasure': Room("Treasure Chamber", """You've found the long-lost treasure
-chamber! Sadly, it has already been completely emptied by
-earlier adventurers. The only exit is to the south."""),
+    'treasure': Room("Treasure Chamber",
+                     """You've found the long-lost treasure chamber! Sadly, aside from a few old items, it has already been emptied by earlier adventurers. The only exit is to the south.""",
+                     [sword, shield]),
 }
 
 
@@ -41,7 +52,7 @@ room['treasure'].s_to = room['narrow']
 #
 
 # Make a new player object that is currently in the 'outside' room.
-player = Player(room["outside"])
+player = Player(room["outside"], [])
 
 # Write a loop that:
 #
@@ -57,49 +68,51 @@ player = Player(room["outside"])
 is_playing = True
 
 
-def parse_player_input(key):
-    if key == "q":
-        global is_playing
-        is_playing = False
-    else:
-        move(key)
-
-
-def move(direction):
+def parse_player_input(text):
     global player
-    if direction == 'n':
+    global is_playing
+    action = text.split(' ')[0]
+    if action == "q":
+        is_playing = False
+        print("Until next time, adventurer...")
+    elif action in ['n', 's', 'e', 'w']:
+        player.move(action)
+    elif action == "get" or action == "take":
         try:
-            player.current_room = player.current_room.n_to
-            print("You move north.")
+            item_name = text.split(' ')[1]
+            player.add_item(item_name)
         except:
-            print("There is nothing in that direction.")
-    if direction == 's':
+            print("Cannot pick up that item.")
+    elif action == "drop":
         try:
-            player.current_room = player.current_room.s_to
-            print("You move south.")
+            item_name = text.split(' ')[1]
+            player.remove_item(item_name)
         except:
-            print("There is nothing in that direction.")
-    if direction == 'e':
+            print("Cannot drop that item.")
+    elif action == "inspect":
         try:
-            player.current_room = player.current_room.e_to
-            print("You move east.")
+            item_name = text.split(' ')[1]
+            player.current_room.inspect(item_name)
         except:
-            print("There is nothing in that direction.")
-
-    if direction == 'w':
-        try:
-            player.current_room = player.current_room.w_to
-            print("You move west.")
-        except:
-            print("There is nothing in that direction.")
+            print("Cannot inspect that item.")
+    elif action == "i" or action == "inventory":
+        print("Inventory:")
+        print(player.list_items())
     else:
         print("I don't know what that means.")
 
 
 while is_playing:
-    print(f'Current Location: {player.current_room.name}')
+    print("\n")
+    print('----------------------------------------------------')
+    print(f'Location: {player.current_room.name}')
+    print(f'Items nearby: {player.current_room.list_items()}')
+    print('----------------------------------------------------')
+    print("\n")
     print(textwrap.fill(player.current_room.description))
-    next_move = input("What would you like to do next? ")
-    print('=====================================================')
+    print("\n")
+    next_move = input("What would you like to do? ")
+    print("\n")
+    print("~")
     parse_player_input(next_move)
-    print('=====================================================')
+    print("~")
