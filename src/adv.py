@@ -1,10 +1,13 @@
+import textwrap
 from room import Room
+from player import Player
+
 
 # Declare all the rooms
 
 room = {
     'outside':  Room("Outside Cave Entrance",
-                     "North of you, the cave mount beckons"),
+                     "North of you, the cave mount beckons."),
 
     'foyer':    Room("Foyer", """Dim light filters in from the south. Dusty
 passages run north and east."""),
@@ -38,6 +41,7 @@ room['treasure'].s_to = room['narrow']
 #
 
 # Make a new player object that is currently in the 'outside' room.
+player = Player(room["outside"])
 
 # Write a loop that:
 #
@@ -49,3 +53,53 @@ room['treasure'].s_to = room['narrow']
 # Print an error message if the movement isn't allowed.
 #
 # If the user enters "q", quit the game.
+
+is_playing = True
+
+
+def parse_player_input(key):
+    if key == "q":
+        global is_playing
+        is_playing = False
+    else:
+        move(key)
+
+
+def move(direction):
+    global player
+    if direction == 'n':
+        try:
+            player.current_room = player.current_room.n_to
+            print("You move north.")
+        except:
+            print("There is nothing in that direction.")
+    if direction == 's':
+        try:
+            player.current_room = player.current_room.s_to
+            print("You move south.")
+        except:
+            print("There is nothing in that direction.")
+    if direction == 'e':
+        try:
+            player.current_room = player.current_room.e_to
+            print("You move east.")
+        except:
+            print("There is nothing in that direction.")
+
+    if direction == 'w':
+        try:
+            player.current_room = player.current_room.w_to
+            print("You move west.")
+        except:
+            print("There is nothing in that direction.")
+    else:
+        print("I don't know what that means.")
+
+
+while is_playing:
+    print(f'Current Location: {player.current_room.name}')
+    print(textwrap.fill(player.current_room.description))
+    next_move = input("What would you like to do next? ")
+    print('=====================================================')
+    parse_player_input(next_move)
+    print('=====================================================')
